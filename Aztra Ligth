@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Aztra • Presets por Nicho & Tempo</title>
+<style>
+  :root{
+    --bg:#070c1a; --panel:#0b1226; --panel2:#0f1833; --muted:#8aa4d6; --text:#e7efff; --b:#1a2446; --chip:#0a1022;
+    --brand:#9b5cff; --brand2:#46c1ff; --ok:#30d158; --warn:#ffb02e; --bad:#ff453a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 800px at -20% -10%,#0f1a33 0%,#070c1a 48%,#050a17 100%);color:var(--text);font:500 15px/1.5 Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+  header{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .logo{font-weight:800}
+  .tabs{display:flex;gap:10px;flex-wrap:wrap}
+  .tab{border:1px solid var(--b);background:linear-gradient(180deg,#0b1226,#0a1022);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
+  .tab.active{border-color:#2b3d78;background:linear-gradient(180deg,#0e1730,#0a1128);outline:1px solid #334a8a}
+  .sections>section{display:none}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--b);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(5,10,23,.35)}
+  h2{margin:0 0 8px;font-size:18px}
+  h3{margin:0 0 8px;font-size:16px;color:#b9ccff}
+  .muted{color:var(--muted)}
+  label{display:block;color:#bdd2ff;font-size:13px;margin:4px 0 6px}
+  input,select,textarea{width:100%;background:#0a1022;border:1px solid var(--b);border-radius:10px;color:var(--text);padding:10px}
+  textarea{min-height:84px;resize:vertical}
+  .grid{display:grid;gap:14px}
+  .cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  @media (max-width:980px){.cols-4,.cols-3,.cols-2{grid-template-columns:1fr}}
+  .row{display:grid;gap:10px;margin:8px 0}
+  .row.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .btn{background:linear-gradient(180deg,#111c3a,#0d1530);border:1px solid #243468;color:#dfe9ff;border-radius:10px;padding:10px 12px;cursor:pointer}
+  .btn.brand{background:linear-gradient(180deg,#20102a,#1a0d22);border-color:#8640b1}
+  .btn.ok{background:linear-gradient(180deg,#10381e,#0d2417);border-color:#2d8248}
+  .chip{background:var(--chip);border:1px solid var(--b);border-radius:999px;padding:4px 8px;color:#a9bfff;font-size:12px;display:inline-flex;gap:6px;align-items:center}
+  .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--b);background:#0a1022;color:#b3c9ff;font-size:12px}
+  .pill.s{border-color:#2c6e49;background:#0d1d15}
+  .pill.m{border-color:#2b3d78;background:#0b1226}
+  .pill.h{border-color:#8a2d4a;background:#1a0e16}
+  .preset{display:flex;flex-direction:column;gap:8px;border:1px solid var(--b);background:linear-gradient(180deg,#0b1226,#0a1022);border-radius:12px;padding:12px}
+  .preset .t{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .preset .ttl{font-weight:700}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre{background:#081126;border:1px solid #1a2446;border-radius:10px;padding:12px;color:#a8c7ff;white-space:pre-wrap}
+  .log{font-family:ui-monospace,Menlo,Consolas,monospace;background:#081126;border:1px solid #1a2446;border-radius:10px;padding:10px;min-height:120px;white-space:pre-wrap;color:#a8c7ff}
+  .dropzone{border:1.5px dashed #29407a;background:#0d1430;border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer}
+  .dropthumb{width:64px;height:64px;background:#081126;border:1px solid #1a2446;border-radius:10px;display:grid;place-items:center;overflow:hidden}
+  .dropthumb img{max-width:100%;max-height:100%;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🚀 Aztra • <span class="muted">Presets por Nicho & Tempo</span></div>
+    <div id="az-tabs" class="tabs"></div>
+  </header>
+  <div class="sections">
+    <section id="az-sec-presets"></section>
+    <section id="az-sec-models"></section>
+    <section id="az-sec-gerador"></section>
+    <section id="az-sec-n8n"></section>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="az-modal" class="modal" style="position:fixed;inset:0;display:none">
+  <div class="overlay" id="az-modal-ov" style="position:absolute;inset:0;background:rgba(2,6,16,.65);backdrop-filter:blur(3px)"></div>
+  <div class="box" style="position:relative;z-index:2;width:min(920px,92vw);max-height:80vh;overflow:auto;border:1px solid var(--b);background:linear-gradient(180deg,var(--panel),var(--panel2));border-radius:14px;box-shadow:0 40px 100px rgba(0,0,0,.55)">
+    <header style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--b)">
+      <strong id="az-modal-title">Preview</strong>
+      <div class="tabs">
+        <button id="az-modal-copy" class="btn">Copiar</button>
+        <button id="az-modal-close" class="btn">Fechar</button>
+      </div>
+    </header>
+    <main id="az-modal-body" style="padding:12px 14px"><pre class="mono">…</pre></main>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const $=(s,sc=document)=>sc.querySelector(s);
+  const AztraApp = window.AztraApp || {
+    state:{}, _ev:{},
+    on(n,fn){(this._ev[n]||(this._ev[n]=[])).push(fn)},
+    emit(n,d){(this._ev[n]||[]).forEach(f=>{try{f(d)}catch(e){console.error(e)}})},
+    tabs:[], addTab(id,label){this.tabs.push({id,label}); this.renderTabs();},
+    renderTabs(){ const box=$('#az-tabs'); if(!box) return; box.innerHTML=this.tabs.map(t=>`<button class="tab" data-id="${t.id}">${t.label}</button>`).join('');
+      const act=this.state.activeTab||(this.tabs[0]&&this.tabs[0].id); box.querySelectorAll('.tab').forEach(b=>{b.onclick=()=>this.navigate(b.dataset.id); if(b.dataset.id===act) b.classList.add('active')}); if(!this.state.activeTab&&act) this.navigate(act);
+    },
+    navigate(id){ this.state.activeTab=id; ['presets','models','gerador','n8n'].forEach(k=>{const s=$('#az-sec-'+k); if(s) s.style.display=(k===id)?'block':'none'}); },
+    mount(id,html){ const s=$('#az-sec-'+id); if(s) s.innerHTML=html; },
+    modal(t,b){ $('#az-modal-title').textContent=t||'Preview'; const node=(typeof b==='string')?`<pre class=mono>${b.replace(/</g,'&lt;')}</pre>`:b; $('#az-modal-body').innerHTML=node; $('#az-modal').style.display='grid';},
+    closeModal(){ $('#az-modal').style.display='none' }, utils:{uid(){return 'p_'+Math.random().toString(36).slice(2,8)}}
+  };
+  window.AztraApp = AztraApp;
+  $('#az-modal-ov').onclick=()=>AztraApp.closeModal(); $('#az-modal-close').onclick=()=>AztraApp.closeModal(); $('#az-modal-copy').onclick=()=>{ const pre=$('#az-modal-body pre'); if(pre) navigator.clipboard.writeText(pre.textContent||'') }
+
+  AztraApp.addTab('presets','✨ Presets');
+  AztraApp.addTab('models','🧬 Modelos');
+  AztraApp.addTab('gerador','🚀 Gerador');
+
+  // ======= Presets Dinâmicos por Nicho & Tempo =======
+  const NICHOS = [
+    'Maternidade','Bebê Aventureiro','Bebê Triste','Bebê com Fome','Bebê Cozinheiro','Bebê Motorista','Bebê Massagista'
+  ];
+  const DURACOES = [5,10,15,30,60,300,600,900]; // 5s..15min
+  const AR_SUG = { default:'9:16', landscape:'16:9' };
+
+  const bank = {
+    base:['cinematográfico','naturalista','documental','soft light','high-key','low-key','bokeh suave','tons pastel','paleta quente','paleta fria','neon sutil','grão fino','HDR leve','contraste moderado','texturas suaves','profundidade de campo rasa'],
+    camera:['lente 25mm','lente 35mm','lente 50mm','follow cam','dolly-in suave','pan lento','tilt leve','estabilização sutil','handheld controlado','tripé estável'],
+    mood:['calor humano','ternura','energia lúdica','curiosidade','surpresa','calma','humor leve','melancolia suave','foco/atenção','conforto'],
+    ambientes:['quarto iluminado por janela','cozinha ensolarada','sala minimalista','parque ao entardecer','carro estacionado','estúdio caseiro','berçário moderno','mercado local','cafeteria aconchegante','clínica de bem-estar']
+  };
+
+  const nichoSpecs = {
+    'Maternidade': { motifs:['carinho da mãe','contato pele a pele','olhares e sorrisos','colo e afeto'], ar: AR_SUG.default },
+    'Bebê Aventureiro': { motifs:['engatinhar explorando','descoberta de objetos','mini trilha no parque','aventura no tapete'], ar: AR_SUG.default },
+    'Bebê Triste': { motifs:['lágrimas discretas','boquinha trêmula','buscando colo','consolo imediato'], ar: AR_SUG.default },
+    'Bebê com Fome': { motifs:['sinal de fome','olhar atento para mamadeira','mãos agitadas','expectativa de comida'], ar: AR_SUG.default },
+    'Bebê Cozinheiro': { motifs:['mini avental','mexendo tigelas','experimentando sabores','brincando com utensílios seguros'], ar: AR_SUG.default },
+    'Bebê Motorista': { motifs:['volante de brinquedo','buzina divertida','carrinho estilizado','luzes do painel fake'], ar: AR_SUG.landscape },
+    'Bebê Massagista': { motifs:['toque suave nas costas','óleo hipotético imaginário','massagem em pelúcia','expressão concentrada'], ar: AR_SUG.default }
+  };
+
+  function levelByDuration(d){ if(d<=10) return 's'; if(d<=30) return 'm'; return 'h'; }
+
+  function sample(arr, n){ const a=[...arr]; const out=[]; while(out.length<n && a.length){ out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]); } return out; }
+
+  function genTitle(nicho, d, idx){
+    const map={5:'Flash',10:'Quick',15:'Short',30:'Story',60:'Mini',300:'Episódio',600:'Capítulo',900:'Especial'};
+    return `${nicho} ${map[d]||d+'s'} #${String(idx+1).padStart(2,'0')}`;
+  }
+
+  function buildPreset(nicho, d, idx){
+    const spec = nichoSpecs[nicho]||{motifs:['cena'],ar:AR_SUG.default};
+    const motifs = sample(spec.motifs,1)[0];
+    const base = sample(bank.base,2).join(', ');
+    const cam = sample(bank.camera,1)[0];
+    const mood = sample(bank.mood,1)[0];
+    const amb = sample(bank.ambientes,1)[0];
+    const prompt = `${nicho.toLowerCase()}: ${motifs}; ${amb}; ${base}; ${cam}; atmosfera de ${mood}`;
+    return {
+      id: AztraApp.utils.uid(), title: genTitle(nicho,d,idx), d, ar: spec.ar, mode: d>30?'pro':'std', cfg: d>60?0.65:0.55,
+      tags:[nicho.split(' ')[0].toLowerCase(), levelByDuration(d), amb.split(' ')[0].toLowerCase()],
+      prompt, negative:'low quality, watermark'
+    };
+  }
+
+  function generatePack(nicho, d){ // 10 por tempo
+    return Array.from({length:10}, (_,i)=>buildPreset(nicho,d,i));
+  }
+
+  function presetCard(p){
+    const lv = levelByDuration(p.d);
+    return `<div class="preset">
+      <div class="t"><span class="ttl">${p.title}</span>
+        <span class="tabs"><span class="pill ${lv}">${p.d}s</span><span class="pill">${p.ar}</span><span class="pill">${p.mode}</span></span>
+      </div>
+      <div class="muted">${p.prompt}</div>
+      <div class="row">
+        <div class="chip">tags: ${p.tags.join(', ')}</div>
+      </div>
+      <div class="row">
+        <button class="btn brand" data-apply='${JSON.stringify(p)}'>Usar</button>
+      </div>
+    </div>`;
+  }
+
+  function mountPresets(){
+    AztraApp.mount('presets', `
+      <div class="card">
+        <h2>✨ Presets por Nicho & Tempo</h2>
+        <div class="row cols-3">
+          <label>Nicho
+            <select id="fNicho">${NICHOS.map(n=>`<option>${n}</option>`).join('')}</select>
+          </label>
+          <label>Tempo
+            <select id="fTempo">${DURACOES.map(d=>`<option value="${d}">${d<=90?d+'s':(d/60)+'m'}</option>`).join('')}</select>
+          </label>
+          <div style="align-self:end;display:flex;gap:8px">
+            <button id="btnGen" class="btn ok">Gerar 10</button>
+            <button id="btnJson" class="btn">Exportar JSON</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid cols-2" id="presetGrid"></div>
+    `);
+
+    const grid = $('#presetGrid');
+    let lastPack = [];
+    const render = ()=>{
+      const nicho = $('#fNicho').value; const tempo = Number($('#fTempo').value);
+      lastPack = generatePack(nicho, tempo);
+      grid.innerHTML = lastPack.map(presetCard).join('');
+    };
+    $('#btnGen').onclick = render; render();
+
+    $('#btnJson').onclick = ()=>{
+      const blob = new Blob([JSON.stringify(lastPack,null,2)],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='presets_'+Date.now()+'.json'; a.click();
+    };
+
+    grid.addEventListener('click', (ev)=>{
+      const b = ev.target.closest('button[data-apply]'); if(!b) return; const p = JSON.parse(b.dataset.apply);
+      if(window.AztraApp){ window.AztraApp.emit('preset:apply', p); window.AztraApp.navigate && window.AztraApp.navigate('gerador'); }
+    });
+  }
+
+  // ======= Modelos (simples) =======
+  function mountModels(){
+    AztraApp.mount('models', `
+      <div class="grid cols-2">
+        <div class="card"><h3>Kling V1 • Standard</h3><div class="muted">Equilíbrio entre qualidade e custo.</div><div class="row"><button class="btn" id="mStd">Usar no Gerador</button></div></div>
+        <div class="card"><h3>Kling V1 • Pro</h3><div class="muted">Consistência superior em cenas complexas.</div><div class="row"><button class="btn" id="mPro">Usar no Gerador</button></div></div>
+      </div>
+    `);
+    $('#mStd').onclick=()=>AztraApp.emit('model:set',{model:'kling-v1',mode:'std'});
+    $('#mPro').onclick=()=>AztraApp.emit('model:set',{model:'kling-v1',mode:'pro'});
+  }
+
+  // ======= Gerador (essencial para receber presets) =======
+  function mountGerador(){
+    AztraApp.mount('gerador', `
+      <div class="grid cols-2">
+        <div class="card">
+          <h2>🎛️ Configuração</h2>
+          <div class="row cols-2">
+            <label>Modelo<select id="gModel"><option value="kling-v1">Kling V1</option></select></label>
+            <label>Modo<select id="gMode"><option value="std">standard</option><option value="pro">professional</option></select></label>
+          </div>
+          <div class="row cols-4">
+            <label>Duração<input id="gDur" type="number" value="10"/></label>
+            <label>Aspect Ratio<select id="gAr"><option>9:16</option><option>16:9</option><option>1:1</option><option>21:9</option></select></label>
+            <label>FPS<input id="gFps" type="number" value="30"/></label>
+            <label>CFG<input id="gCfg" type="number" step="0.05" value="0.55"/></label>
+          </div>
+          <div class="row cols-2">
+            <label>Seed<input id="gSeed" type="number" value="-1"/></label>
+            <label>Preset atual<div class="pill" id="gPreset">—</div></label>
+          </div>
+          <div class="row cols-2">
+            <label>Prompt<textarea id="gPrompt"></textarea></label>
+            <label>Negative<textarea id="gNeg">low quality, watermark</textarea></label>
+          </div>
+          <div class="row cols-3">
+            <button class="btn brand" id="curlSub">cURL Submit</button>
+            <button class="btn" id="curlPoll">cURL Poll</button>
+            <button class="btn" id="curlAudio">cURL Video→Audio</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📜 Pré-visualização</h3>
+          <pre id="gPreview" class="mono">Aguardando preset…</pre>
+        </div>
+      </div>
+    `);
+
+    const el=id=>document.getElementById(id);
+    function updatePreview(){
+      const p = {
+        model_name: el('gModel').value, mode: el('gMode').value,
+        prompt: el('gPrompt').value.trim(), negative_prompt: el('gNeg').value.trim(),
+        duration: String(el('gDur').value), aspect_ratio: el('gAr').value,
+        fps: Number(el('gFps').value||30), cfg_scale: Number(el('gCfg').value||0.5), seed: Number(el('gSeed').value||-1)
+      };
+      el('gPreview').textContent = JSON.stringify(p,null,2);
+      return p;
+    }
+    ['gModel','gMode','gDur','gAr','gFps','gCfg','gSeed','gPrompt','gNeg'].forEach(id=>el(id).addEventListener('input',updatePreview));
+
+    AztraApp.on('preset:apply', (p)=>{
+      el('gMode').value=p.mode; el('gDur').value=p.d; el('gAr').value=p.ar; el('gCfg').value=p.cfg; el('gPrompt').value=p.prompt; el('gNeg').value=p.negative||''; $('#gPreset').textContent=p.title; updatePreview();
+    });
+    AztraApp.on('model:set', ({model,mode})=>{ if(model) el('gModel').value=model; if(mode) el('gMode').value=mode; updatePreview(); });
+
+    function curlSubmit(){ const p=updatePreview(); return `curl --location 'https://api.klingai.com/v1/videos/text2video' \
+  --header 'Authorization: Bearer <TOKEN>' \
+  --header 'Content-Type: application/json' \
+  --data '${JSON.stringify(p).replace(/'/g,"'\\''")}'`; }
+    function curlPoll(){ return `curl --location 'https://api.klingai.com/v1/tasks/<TASK_ID>' \
+  --header 'Authorization: Bearer <TOKEN>'`; }
+    function curlAudio(){ return `curl --location 'https://api.klingai.com/v1/audio/video-to-audio' \
+  --header 'Authorization: Bearer <TOKEN>' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'video_id=<VIDEO_ID>'`; }
+
+    el('curlSub').onclick=()=>AztraApp.modal('cURL — Submit', curlSubmit());
+    el('curlPoll').onclick=()=>AztraApp.modal('cURL — Poll', curlPoll());
+    el('curlAudio').onclick=()=>AztraApp.modal('cURL — Video→Audio', curlAudio());
+
+    updatePreview();
+  }
+
+  // mount
+  mountPresets(); mountModels(); mountGerador(); AztraApp.renderTabs(); AztraApp.navigate('presets');
+})();
+</script>
+</body>
+</html>
